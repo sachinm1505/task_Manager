@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Metadata and Document Setup -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Calendar App</title>
+
+    <!-- External CSS Libraries -->
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Google Fonts: Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Internal CSS Styles -->
+    <style>
+        /* Global Styles */
+        body{
+            font-family: 'Roboto', sans-serif; /* Apply Roboto font */
+            background-color: #f0f0f0; /* Light gray background */
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition for background and text color changes */
+            margin: 0;
+            padding: 0;
+        }
+        /* Initial Screen Styles */
+        #initialScreen {
+            background-color: white;
+            display: flex; /* Use flexbox for layout */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            height: 100vh; /* Full viewport height */
+            background-size: 30%; /* Background size */
+            background-position: center 50px; /* Background position */
+            background-repeat: no-repeat; /* Prevent background repetition */
+            flex-direction: column; /* Stack children vertically */
+            text-align: center; /* Center text */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        /* Input Field Styles on Initial Screen */
+        #initialScreen input {
+            padding: 12px; /* Padding inside input */
+            font-size: 18px; /* Font size */
+            width: 300px; /* Fixed width */
+            border-radius: 5px; /* Rounded corners */
+            border: 1px solid #ccc; /* Light gray border */
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        #initialScreen input:focus {
+            border-color: #6a11cb; /* Highlight border on focus */
+            outline: none;
+        }
+
+        /* Submit Button Styles */
+        #initialScreen button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            background-color: #6a11cb;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        #initialScreen button:hover {
+            background-color: #2575fc;
+            transform: scale(1.05);
+        }
+
+        /* Calendar Table Styles */
+        table {
+            padding-left: 0%; /* Remove left padding */
+            border-collapse: collapse; /* Collapse borders */
+            background: white; /* White background */
+            color: black; /* Black text */
+            width: 100%; /* Full width */
+            max-width: 800px; /* Maximum width */
+            margin: auto; /* Center the table */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Table Header and Data Cell Styles */
+        th,
+        td {
+            text-align: center; /* Center text */
+            padding: 15px; /* Padding inside cells */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: background 0.2s, color 0.2s; /* Smooth background and color transition */
+        }
+
+        /* Table Header Styles */
+        th {
+            color: white; /* White text */
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); /* Gradient background */
+            font-size: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        /* Table Data Cell Styles */
+        td {
+            font-weight: bold;
+            font-size: 24px; /* Larger font size */
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
+        }
+
+        /* Hover Effect for Table Data Cells */
+        td:hover {
+            background: #e6f7ff; /* Light blue background on hover */
+        }
+
+        /* Month and Year Display Styles */
+        #monthYear {
+            font-size: 28px; /* Large font size */
+            margin: 10px 0; /* Vertical margin */
+            text-align: center; /* Left-aligned text */
+            color: #3510db; /* Orange text color */
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        /* Styles for Past Dates */
+        .past-date {
+            color: grey; /* Grey text color */
+            cursor: default; /* Default cursor */
+            font-weight: normal; /* Normal font weight */
+        }
+
+        /* Styles for the Current Date */
+        .current-date {
+            background-color: #ffeb3b; /* Yellow background */
+            border-radius: 50%; /* Circular shape */
+            font-weight: bold; /* Bold text */
+            color: red; /* Red text color */
+        }
+
+        /* Popup and Overlay Styles */
+        .popup,
+        .reminder-popup {
+            display: none; /* Hidden by default */
+            position: fixed; /* Fixed position */
+            left: 50%; /* Center horizontally */
+            top: 50%; /* Center vertically */
+            transform: translate(-50%, -50%); /* Adjust for perfect centering */
+            background-color: white; /* White background */
+            border: 2px solid black; /* Black border */
+            padding: 20px; /* Padding inside popup */
+            z-index: 1000; /* Ensure it's on top */
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        /* Overlay Styles */
+        .overlay {
+            display: none; /* Hidden by default */
+            position: fixed; /* Fixed position */
+            left: 0; /* Start from left */
+            top: 0; /* Start from top */
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+            z-index: 999; /* Below the popup */
+        }
+
+        /* Popup Input Styles */
+        .popup input,
+        .popup select,
+        .popup textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .popup input:focus,
+        .popup select:focus,
+        .popup textarea:focus {
+            border-color: #6a11cb; /* Highlight border on focus */
+            outline: none;
+        }
+
+        /* Popup Button Styles */
+        .popup button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 25px;
+            background-color: #6a11cb;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 14px;
+        }
+
+        .popup button:hover {
+            background-color: #2575fc;
+            transform: scale(1.05);
+        }
+
+        /* Event List Section Styles */
+        #eventList {
+            margin-top: 20px; /* Top margin */
+            border-top: 1px solid grey; /* Top border */
+            padding-top: 10px; /* Top padding */
+        }
+
+        /* Event Table Styles */
+        #eventTable {
+            width: 100%; /* Full width */
+            border-collapse: collapse; /* Collapse borders */
+            margin-top: 20px; /* Top margin */
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Individual Event Item Styles */
+        .event-item {
+            border-bottom: 1px solid #f0f0f0; /* Light border */
+            transition: background 0.3s, transform 0.2s; /* Smooth background and transform transition */
+        }
+
+        .event-item:last-child {
+            border-bottom: none; /* Remove border for last row */
+        }
+
+        /* Event Table Header Styles */
+        #eventTable th {
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); /* Gradient background */
+            color: white; /* White text */
+            padding: 15px; /* Padding inside header */
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        /* Event Table Data Cell Styles */
+        #eventTable td {
+            padding: 15px; /* Padding inside cells */
+            text-align: center; /* Centered text */
+            font-size: 14px;
+            position: relative;
+        }
+
+        /* Hover Effect for Event Rows */
+        .event-item:hover {
+            background: #f9f9f9; /* Light background on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+
+        /* Action Buttons in Event Table */
+        .action-btn {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        .action-btn.complete {
+            color: green;
+        }
+
+        .action-btn.complete:hover {
+            color: darkgreen;
+        }
+
+        .action-btn.edit {
+            color: #ff9800;
+        }
+
+        .action-btn.edit:hover {
+            color: #e68900;
+        }
+
+        .action-btn.delete {
+            color: red;
+        }
+
+        .action-btn.delete:hover {
+            color: darkred;
+        }
+
+        /* Completed Event Styles */
+        .completed {
+            text-decoration: line-through;
+            color: grey;
+            opacity: 0.6;
+        }
+
+        /* Search and Filter Section Styles */
+        #searchFilter {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        #searchFilter input,
+        #searchFilter select {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            flex: 1;
+            min-width: 150px;
+            transition: border-color 0.3s;
+            font-weight: bold;
+        }
+
+        #searchFilter input:focus,
+        #searchFilter select:focus {
+            border-color: #6a11cb; /* Highlight border on focus */
+            outline: none;
+        }
+
+        /* Calendar Container Styles */
+        #calendarContainer {
+            display: flex; /* Use flexbox */
+            justify-content: space-between; /* Space between items */
+            flex-wrap: wrap;
+        }
+
+        /* Calendar Section Styles */
+        #calendar {
+            width: 70%; /* 70% width */
+            margin-right: 20px; /* Right margin */
+        }
+
+        /* Navigation Buttons Styles */
+        #navigation {
+            display: flex;
+            align-items: center;
+            justify-content:space-evenly;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        #navigation button {
+            padding: 10px 20px; /* Padding for better appearance */
+            border: none; /* Remove default border */
+            border-radius: 25px; /* Rounded corners */
+            font-size: 16px; /* Font size */
+            font-weight: bold; /* Bold text */
+            color: white; /* White text color */
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); /* Gradient background */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: background 0.3s, transform 0.2s; /* Smooth transitions for background and transform */
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #navigation button:hover {
+            background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%); /* Reverse gradient on hover */
+            transform: scale(1.05); /* Slightly enlarge button on hover */
+        }
+
+        #navigation button:focus {
+            outline: none; /* Remove outline */
+        }
+
+        /* Specific styles for the theme toggle button */
+        #themeToggle {
+            font-size: 24px; /* Larger emoji size */
+            background: none; /* Remove background */
+            cursor: pointer; /* Pointer cursor */
+            padding: 0 10px;
+        }
+
+        /* Responsive Styles for Smaller Screens */
+        @media (max-width: 600px) {
+            td {
+                font-size: 18px; /* Smaller font size for cells */
+            }
+
+            #monthYear {
+                font-size: 22px; /* Smaller font size for month/year */
+            }
+
+            #calendarContainer {
+                flex-direction: column;
+            }
+
+            #calendar {
+                width: 100%;
+                margin-right: 0;
+            }
+
+            #navigation {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #navigation button {
+                width: 100%;
+                text-align: center;
+            }
+
+            /* Adjust event table font size */
+            #eventTable th,
+            #eventTable td {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            /* Adjust popup width */
+            .popup {
+                width: 95%;
+                max-width: 350px;
+            }
+
+            /* Adjust search and filter layout */
+            #searchFilter {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* Dark Mode Styles */
+        .dark-mode {
+            background-color: #121212; /* Dark background */
+            color: #ffffff; /* White text */
+        }
+
+        .dark-mode table {
+            background: #1e1e1e; /* Darker table background */
+            color: #ffffff; /* White text */
+        }
+
+        .dark-mode th {
+            background: #3e3e3e; /* Darker header background */
+        }
+
+        .dark-mode td {
+            border-bottom: 1px solid #333;
+        }
+
+        .dark-mode .popup {
+            background-color: #1e1e1e;
+            border-color: #444;
+            color: #ffffff;
+        }
+
+        .dark-mode input,
+        .dark-mode select,
+        .dark-mode textarea {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+
+        .dark-mode input::placeholder,
+        .dark-mode textarea::placeholder {
+            color: #bbb;
+        }
+
+        /* Print Styles */
+        @media print {
+            #navigation,
+            #initialScreen,
+            #themeToggle,
+            .overlay,
+            .popup,
+            #eventList button,
+            #searchFilter {
+                display: none; /* Hide navigation and initial screen when printing */
+            }
+
+            table {
+                page-break-inside: auto; /* Allow page breaks inside table */
+            }
+
+            tr {
+                page-break-inside: avoid; /* Avoid breaking table rows */
+                page-break-after: auto; /* Default page break after rows */
+            }
+        }
+
+        /* Keyframes for Popup Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+   <div id="sim1">
+    <div id="sim2"> <!-- Initial Screen: Mobile Number Input -->
+    <div id="initialScreen" aria-labelledby="welcomeHeading">
+        <h1 id="welcomeHeading">MALLA REDDY COLLEGE OF ENGINEERING AND TECHNOLOGY</h1>
+        <h2>WELCOME!</h2>
+        <h2>Please enter your mobile number</h2>
+        <input type="text" id="mobileNumber" placeholder="Enter your mobile number" maxlength="13" aria-label="Mobile Number">
+        <button onclick="submitMobileNumber()" aria-label="Submit Mobile Number">Submit</button>
+    </div>
+   </div>
+    </div>
+
+   <div id ="sam">   <!-- Calendar Screen: Hidden by Default -->
+    <div id="calendarScreen" style="display: none;">
+        <!-- Display Current Month and Year -->
+        <div id="monthYear"></div>
+
+        <!-- Navigation Buttons -->
+        <div id="navigation">
+            <button onclick="changeMonth(-1)" aria-label="Previous Month"><i class="fas fa-chevron-left"></i> Prev</button> <!-- Previous Month Button -->
+            <button onclick="changeMonth(1)" aria-label="Next Month">Next <i class="fas fa-chevron-right"></i></button> <!-- Next Month Button -->
+            <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle Theme">🌙</button> <!-- Theme Toggle Button -->
+            <button onclick="printCalendar()" aria-label="Print Calendar"><i class="fas fa-print"></i> Print</button> <!-- Print Calendar Button -->
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div id="searchFilter">
+            <input type="text" id="searchInput" placeholder="Search events..." aria-label="Search Events" oninput="filterEvents()">
+            <select id="filterPriority" onchange="filterEvents()" aria-label="Filter by Priority">
+                <option value="All">All Priorities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+
+        <!-- Calendar Container -->
+        <div id="calendarContainer">
+            <!-- Calendar Table -->
+            <div id="calendar">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sun</th> <!-- Sunday Header -->
+                            <th>Mon</th> <!-- Monday Header -->
+                            <th>Tue</th> <!-- Tuesday Header -->
+                            <th>Wed</th> <!-- Wednesday Header -->
+                            <th>Thu</th> <!-- Thursday Header -->
+                            <th>Fri</th> <!-- Friday Header -->
+                            <th>Sat</th> <!-- Saturday Header -->
+                        </tr>
+                    </thead>
+                    <tbody id="calendar-body"></tbody> <!-- Calendar Dates Will Be Rendered Here -->
+                </table>
+            </div>
+        </div>
+
+        <!-- Overlay for Popup Modals -->
+        <div id="overlay" class="overlay" onclick="closePopup()"></div>
+
+        <!-- Popup Modal for Adding/Editing Events -->
+        <div id="popup" class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+            <h3 id="popupTitle">Add Event</h3>
+            <p id="eventDate"></p> <!-- Display Selected Date -->
+            <input type="text" id="eventInput" placeholder="Enter event details" aria-label="Event Details">
+            <textarea id="eventDescription" placeholder="Enter event description" rows="3" aria-label="Event Description"></textarea>
+            <label for="prioritySelect">Priority:</label>
+            <select id="prioritySelect" aria-label="Event Priority">
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+            <label for="timeInput">Time:</label>
+            <input type="time" id="timeInput" aria-label="Event Time">
+            <label for="categorySelect">Category:</label>
+            <select id="categorySelect" aria-label="Event Category">
+                <option value="General">General</option>
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Other">Other</option>
+            </select>
+            <div style="text-align: right;">
+                <button onclick="saveEvent()">Save <i class="fas fa-save"></i></button> <!-- Save Event Button -->
+                <button onclick="closePopup()">Cancel <i class="fas fa-times"></i></button> <!-- Cancel Button -->
+            </div>
+        </div>
+
+        <!-- Event List Section -->
+        <div id="eventList">
+            <h3>Events</h3>
+            <table id="eventTable">
+                <thead>
+                    <tr>
+                        <th>Date</th> <!-- Event Date Header -->
+                        <th>Time</th> <!-- Event Time Header -->
+                        <th>Event Details</th> <!-- Event Details Header -->
+                        <th>Description</th> <!-- Event Description Header -->
+                        <th>Priority</th> <!-- Event Priority Header -->
+                        <th>Category</th> <!-- Event Category Header -->
+                        <th>Complete</th> <!-- Complete Event Header -->
+                        <th>Edit</th> <!-- Edit Event Header -->
+                        <th>Delete</th> <!-- Delete Event Header -->
+                    </tr>
+                </thead>
+                <tbody id="eventsContainer"></tbody> <!-- Events Will Be Rendered Here -->
+            </table>
+        </div>
+    </div>
+</div>
+    <!-- JavaScript Section -->
+    <script>
+        // Initialize Events from Local Storage or as an Empty Object
+        let events = JSON.parse(localStorage.getItem('events')) || {};
+        let selectedDate = ''; // Currently Selected Date
+        let currentMonth = new Date().getMonth(); // Current Month (0-11)
+        let currentYear = new Date().getFullYear(); // Current Year
+        let today = new Date(); // Today's Date
+        let isEditing = false; // Flag to determine if editing an event
+        let editEventIndex = null; // Index of the event being edited
+
+        /**
+         * Submit Mobile Number
+         * Validates and stores the mobile number, then displays the calendar screen.
+         */
+        function submitMobileNumber() {
+            let mobileNumber = document.getElementById("mobileNumber").value.trim();
+            // Validate mobile number format: +91 followed by 10 digits
+            if (!/^\+91\d{10}$/.test(mobileNumber)) {
+                alert("Please enter a valid mobile number including +91.");
+                return;
+            }
+            // Store mobile number in Local Storage
+            localStorage.setItem('mobileNumber', mobileNumber);
+            // Hide Initial Screen and Show Calendar Screen
+            document.getElementById("initialScreen").style.display = "none";
+            document.getElementById("calendarScreen").style.display = "block";
+            // Render the Calendar and Events
+            renderCalendar();
+            renderEvents();
+            applySavedTheme(); // Apply the saved theme preference
+        }
+
+        /**
+         * Render Calendar
+         * Generates the calendar for the current month and year.
+         */
+        function renderCalendar() {
+            let calendarBody = document.getElementById("calendar-body");
+            calendarBody.innerHTML = ""; // Clear previous calendar
+            // Display current month and year
+            document.getElementById("monthYear").innerText = ${getMonthName(currentMonth)} ${currentYear};
+
+            // Determine the first day of the month (0=Sunday, 6=Saturday)
+            let firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+            // Get the number of days in the current month
+            let daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            let row = document.createElement("tr"); // Start a new table row
+
+            // Fill in the empty cells for days from the previous month
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                let cell = document.createElement("td");
+                cell.className = "past-date"; // Apply past-date styling
+                cell.innerText = ""; // Empty cell
+                row.appendChild(cell);
+            }
+
+            // Fill in the days of the current month
+            for (let day = 1; day <= daysInMonth; day++) {
+                let cell = document.createElement("td");
+                cell.innerText = day; // Display day number
+                let eventKey = ${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}; // Unique key for the date
+
+                // Highlight today's date
+                if (day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                    cell.classList.add("current-date"); // Apply current-date styling
+                }
+
+                // Check if there are events on this date
+                if (events[eventKey] && events[eventKey].length > 0) {
+                    cell.style.backgroundColor = "#d1e7dd"; // Light green background for days with events
+                    cell.style.cursor = "pointer"; // Pointer cursor
+                    // Add click event to show event popup
+                    cell.onclick = () => {
+                        selectedDate = eventKey; // Set selected date
+                        showEventPopup(selectedDate); // Show popup
+                    };
+                } else {
+                    // Add click event to show event popup even if no events exist
+                    cell.onclick = () => {
+                        selectedDate = eventKey; // Set selected date
+                        showEventPopup(selectedDate); // Show popup
+                    };
+                }
+
+                row.appendChild(cell); // Add cell to the row
+
+                // If the end of the week is reached, append the row to the calendar body and start a new row
+                if ((firstDayOfMonth + day) % 7 === 0) {
+                    calendarBody.appendChild(row);
+                    row = document.createElement("tr"); // Start a new row
+                }
+            }
+
+            // Fill in the remaining cells of the last week with empty cells
+            while (row.children.length < 7) {
+                let cell = document.createElement("td");
+                cell.className = "past-date"; // Apply past-date styling
+                cell.innerText = ""; // Empty cell
+                row.appendChild(cell);
+            }
+            calendarBody.appendChild(row); // Append the last row
+        }
+
+        /**
+         * Get Month Name
+         * Returns the full name of the month based on the index.
+         * @param {number} monthIndex - The month index (0-11)
+         * @returns {string} - The month name
+         */
+        function getMonthName(monthIndex) {
+            return new Date(0, monthIndex).toLocaleString('default', { month: 'long' });
+        }
+
+        /**
+         * Change Month
+         * Navigates to the previous or next month based on the direction.
+         * @param {number} direction - -1 for previous month, 1 for next month
+         */
+        function changeMonth(direction) {
+            currentMonth += direction; // Update current month
+            // Handle year change when navigating beyond January or December
+            if (currentMonth < 0) {
+                currentMonth = 11; // December
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0; // January
+                currentYear++;
+            }
+            renderCalendar(); // Re-render the calendar
+        }
+
+        /**
+         * Show Event Popup
+         * Displays the popup modal for adding or editing an event on the selected date.
+         * @param {string} date - The selected date in YYYY-MM-DD format
+         */
+        function showEventPopup(date) {
+            document.getElementById("eventDate").innerText = Selected Date: ${date}; // Display selected date
+            document.getElementById("popupTitle").innerText = isEditing ? "Edit Event" : "Add Event"; // Update popup title
+            document.getElementById("popup").style.display = "block"; // Show popup
+            document.getElementById("overlay").style.display = "block"; // Show overlay
+
+            if (isEditing && editEventIndex !== null) {
+                // Populate fields with existing event data
+                let event = events[selectedDate][editEventIndex];
+                document.getElementById("eventInput").value = event.details;
+                document.getElementById("eventDescription").value = event.description;
+                document.getElementById("prioritySelect").value = event.priority;
+                document.getElementById("timeInput").value = event.time;
+                document.getElementById("categorySelect").value = event.category;
+            } else {
+                // Reset popup fields for adding a new event
+                document.getElementById("eventInput").value = '';
+                document.getElementById("eventDescription").value = '';
+                document.getElementById("prioritySelect").value = 'High';
+                document.getElementById("timeInput").value = '';
+                document.getElementById("categorySelect").value = 'General';
+            }
+        }
+
+        /**
+         * Close Popup
+         * Hides the popup modal and overlay.
+         */
+        function closePopup() {
+            document.getElementById("popup").style.display = "none"; // Hide popup
+            document.getElementById("overlay").style.display = "none"; // Hide overlay
+            isEditing = false; // Reset editing flag
+            editEventIndex = null; // Reset event index
+        }
+
+        /**
+         * Save Event
+         * Saves the event details to local storage and updates the calendar and event list.
+         */
+        function saveEvent() {
+            let eventDetails = document.getElementById("eventInput").value.trim(); // Get event details
+            let eventDescription = document.getElementById("eventDescription").value.trim(); // Get event description
+            let priority = document.getElementById("prioritySelect").value; // Get priority
+            let time = document.getElementById("timeInput").value; // Get time
+            let category = document.getElementById("categorySelect").value; // Get category
+
+            // Validate that event details are provided
+            if (!eventDetails) {
+                alert("Please enter event details.");
+                return;
+            }
+
+            let eventEntry = {
+                details: eventDetails, // Event description
+                description: eventDescription, // Event detailed description
+                priority: priority, // Event priority
+                time: time, // Event time
+                category: category, // Event category
+                completed: false // Completion status
+            };
+
+            if (isEditing && editEventIndex !== null) {
+                // Update existing event
+                events[selectedDate][editEventIndex] = eventEntry;
+                isEditing = false;
+                editEventIndex = null;
+            } else {
+                // Add new event
+                let eventKey = selectedDate; // Date key for the event
+                events[eventKey] = events[eventKey] || [];
+                events[eventKey].push(eventEntry); // Add new event to the array
+            }
+
+            localStorage.setItem('events', JSON.stringify(events)); // Save events to local storage
+            closePopup(); // Close the popup
+            renderEvents(); // Render the updated event list
+            renderCalendar(); // Re-render the calendar to reflect changes
+
+            // Send SMS notification for the new or updated event
+            sendSmsNotification(eventEntry);
+        }
+
+        /**
+         * Send SMS Notification
+         * Sends an SMS notification with the event details to the user's mobile number.
+         * Note: This requires a backend service running at http://localhost:3000/send-sms
+         * @param {object} event - The event object containing details, priority, and time
+         */
+        function sendSmsNotification(event) {
+            const mobileNumber = localStorage.getItem('mobileNumber'); // Retrieve mobile number from local storage
+            const message = isEditing
+                ? Event Updated: ${event.details} on ${selectedDate} at ${event.time} with priority ${event.priority}
+                : Event Registered: ${event.details} on ${selectedDate} at ${event.time} with priority ${event.priority};
+
+            // Send POST request to the backend SMS service
+            fetch('http://localhost:3000/send-sms', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Set content type to JSON
+                },
+                body: JSON.stringify({
+                    to: mobileNumber, // Recipient's mobile number
+                    message: message // SMS message content
+                }),
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('SMS notification sent successfully!');
+                    } else {
+                        console.error('Failed to send SMS notification.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending SMS:', error);
+                });
+        }
+
+        /**
+         * Render Events
+         * Displays the list of events in the event table.
+         */
+        function renderEvents() {
+            let eventsContainer = document.getElementById("eventsContainer");
+            eventsContainer.innerHTML = ""; // Clear previous events
+
+            // Sort events by date and time
+            const sortedEvents = Object.keys(events).sort().reduce((acc, key) => {
+                acc[key] = events[key].sort((a, b) => {
+                    if (a.time && b.time) {
+                        return a.time.localeCompare(b.time);
+                    } else if (a.time) {
+                        return -1;
+                    } else if (b.time) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                });
+                return acc;
+            }, {});
+
+            // Iterate over each date and its associated events
+            for (const [date, eventList] of Object.entries(sortedEvents)) {
+                for (const [index, event] of eventList.entries()) {
+                    let row = document.createElement("tr");
+                    row.className = "event-item"; // Apply event-item styling
+
+                    // Apply completed styling if the event is completed
+                    if (event.completed) {
+                        row.classList.add("completed");
+                    }
+
+                    // Populate the row with event details
+                    row.innerHTML = `
+                        <td>${date}</td>
+                        <td>${event.time || '-'}</td>
+                        <td>${event.details}</td>
+                        <td>${event.description || '-'}</td>
+                        <td style="color: ${getPriorityColor(event.priority)}">${event.priority}</td>
+                        <td>${event.category}</td>
+                        <td>
+                            <button class="action-btn complete" onclick="completeEvent('${date}', ${index})" title="Mark as Complete" aria-label="Mark as Complete">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <button class="action-btn edit" onclick="editEvent('${date}', ${index})" title="Edit Event" aria-label="Edit Event">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <button class="action-btn delete" onclick="deleteEvent('${date}', ${index})" title="Delete Event" aria-label="Delete Event">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    `;
+                    eventsContainer.appendChild(row); // Add the row to the table
+                }
+            }
+        }
+
+        /**
+         * Complete Event
+         * Marks an event as completed.
+         * @param {string} date - The date of the event
+         * @param {number} index - The index of the event in the event list
+         */
+        function completeEvent(date, index) {
+            if (events[date] && events[date][index]) {
+                events[date][index].completed = true; // Mark as completed
+                localStorage.setItem('events', JSON.stringify(events)); // Update local storage
+                renderEvents(); // Re-render events list
+                renderCalendar(); // Re-render calendar to reflect changes
+            }
+        }
+
+        /**
+         * Edit Event
+         * Opens the popup with the event details pre-filled for editing.
+         * @param {string} date - The date of the event
+         * @param {number} index - The index of the event in the event list
+         */
+        function editEvent(date, index) {
+            if (events[date] && events[date][index]) {
+                selectedDate = date;
+                editEventIndex = index;
+                isEditing = true;
+                showEventPopup(date); // Show popup with event details
+            }
+        }
+
+        /**
+         * Delete Event
+         * Removes an event from the events list.
+         * @param {string} date - The date of the event
+         * @param {number} index - The index of the event in the event list
+         */
+        function deleteEvent(date, index) {
+            if (events[date] && events[date][index]) {
+                if (confirm(Are you sure you want to delete the event: "${events[date][index].details}"?)) {
+                    events[date].splice(index, 1); // Remove the event
+                    if (events[date].length === 0) {
+                        delete events[date]; // Remove the date key if no events left
+                    }
+                    localStorage.setItem('events', JSON.stringify(events)); // Update local storage
+                    renderEvents(); // Re-render events list
+                    renderCalendar(); // Re-render calendar to reflect changes
+                }
+            }
+        }
+
+        /**
+         * Get Priority Color
+         * Returns a color based on the event's priority level.
+         * @param {string} priority - The priority level (High, Medium, Low)
+         * @returns {string} - The corresponding color
+         */
+        function getPriorityColor(priority) {
+            switch (priority) {
+                case "High": return "red"; // High priority: red
+                case "Medium": return "orange"; // Medium priority: orange
+                case "Low": return "green"; // Low priority: green
+                default: return "black"; // Default: black
+            }
+        }
+
+        /**
+         * Toggle Theme
+         * Switches between light and dark modes and saves the preference in localStorage.
+         */
+        function toggleTheme() {
+            const isDarkMode = document.body.classList.toggle("dark-mode"); // Toggle dark-mode class
+            const themeToggleButton = document.getElementById("themeToggle");
+
+            // Change the emoji based on the current theme
+            themeToggleButton.innerText = isDarkMode ? "🌞" : "🌙"; // Sun for light mode, moon for dark mode
+
+            // Save the theme preference in localStorage
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
+
+        /**
+         * Apply Saved Theme
+         * Applies the saved theme preference from localStorage on page load.
+         */
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add("dark-mode");
+                document.getElementById("themeToggle").innerText = "🌞";
+            } else {
+                document.body.classList.remove("dark-mode");
+                document.getElementById("themeToggle").innerText = "🌙";
+            }
+        }
+
+        /**
+         * Print Calendar
+         * Triggers the print dialog to print the calendar.
+         */
+        function printCalendar() {
+            window.print(); // Open print dialog
+        }
+
+        /**
+         * Filter Events
+         * Filters the event list based on search input and selected priority.
+         */
+        function filterEvents() {
+            const searchInput = document.getElementById("searchInput").value.toLowerCase();
+            const filterPriority = document.getElementById("filterPriority").value;
+            const eventsContainer = document.getElementById("eventsContainer");
+            const eventRows = eventsContainer.getElementsByTagName("tr");
+
+            for (let row of eventRows) {
+                let details = row.cells[2].innerText.toLowerCase();
+                let priority = row.cells[4].innerText;
+                let matchesSearch = details.includes(searchInput);
+                let matchesPriority = filterPriority === "All" || priority === filterPriority;
+
+                if (matchesSearch && matchesPriority) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            }
+        }
+
+        /**
+         * Initialize the Calendar and Events on Page Load
+         */
+        document.addEventListener("DOMContentLoaded", () => {
+            // Check if mobile number is already stored
+            const storedMobileNumber = localStorage.getItem('mobileNumber');
+            if (storedMobileNumber) {
+                document.getElementById("initialScreen").style.display = "none";
+                document.getElementById("calendarScreen").style.display = "block";
+                renderCalendar();
+                renderEvents();
+                applySavedTheme(); // Apply the saved theme preference
+            }
+        });
+    </script>
+</body>
+
+</html>
